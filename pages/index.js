@@ -1,32 +1,39 @@
 import Seo from '@/components/Seo';
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-export default function Home() {
-  const [movies, setMovies] = useState([]);
-  useEffect(() => {
-    // async function getData() {
-    //   const { results } = await (await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`)).json();
-    //   console.log(results);
-    //   setMovies(results);
-    // }
-    // getData();
-    //()() immediate functions
-    (async () => {
-      const { results } = await (await fetch(`/api/movies`)).json();
-      console.log(results);
-      setMovies(results);
-    })();
-  }, []);
-
+export default function Home({ results }) {
+  const router = useRouter();
+  const onClick = (id, title) => {
+    router.push(
+      {
+        pathname: `/movies/${id}`,
+        query: {
+          title,
+        },
+      },
+      //masking browser URL
+      `/movies/${id}`
+    );
+  };
   return (
     <div className='container'>
       <Seo title='Home' />
-      {!movies && <h4>Loading..</h4>}
-      {movies?.map((item, idx) => {
+      {results?.map((movie) => {
         return (
-          <div key={item.id} className='movie'>
-            <img src={`https://image.tmdb.org/t/p/w500/${item.poster_path}`} />
-            <h4>{item.original_title}</h4>
+          <div onClick={() => onClick(movie.id, movie.original_title)} key={movie.id} className='movie'>
+            <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
+            <Link
+              href={{
+                pathname: `/movies/${movie.id}`,
+                query: {
+                  title: movie.original_title,
+                },
+              }}
+              as={`/movies/${movie.id}`}
+            >
+              <h4>{movie.original_title}</h4>
+            </Link>
           </div>
         );
       })}
@@ -37,6 +44,9 @@ export default function Home() {
           grid-template-columns: 1fr 1fr;
           padding: 20px;
           gap: 20px;
+        }
+        .movie {
+          cursor: pointer;
         }
         .movie img {
           max-width: 100%;
@@ -54,4 +64,14 @@ export default function Home() {
       `}</style>
     </div>
   );
+}
+
+export async function getServerSideProps() {
+  // this code will run ONLY on the SERVER
+  const { results } = await (await fetch(`http://localhost:3000/api/movies`)).json();
+  return {
+    props: {
+      results,
+    },
+  };
 }

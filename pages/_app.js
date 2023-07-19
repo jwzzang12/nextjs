@@ -6,9 +6,6 @@ export default function App({ Component, pageProps }) {
     <Layout>
       <Component {...pageProps} />
       <style jsx global>{`
-        a {
-          color: white;
-        }
         .active {
           color: tomato;
         }
